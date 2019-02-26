@@ -1,0 +1,8 @@
+.nav{
+    list-style-type: none;
+    display: inline;
+    padding: 0;
+    overflow: hidden;
+    float: left;
+    background-color: blueviolet;
+}

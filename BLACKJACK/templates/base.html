@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{% block title %}{% endblock %}</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+
+<body>
+
+<h1 class="main">Welcome To Black Jack</h1>
+
+<ul class="nav">
+    <li><a href="/home"><h3>Home</h3></a></li>
+    <li><a href="/login"><h3>Login</h3></a></li>
+    <li><a href="/account"><h3>Account</h3></a></li>
+</ul>
+
+{% block content%}{% endblock %}
+
+</body>
+</html>
