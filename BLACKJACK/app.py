@@ -94,6 +94,13 @@ def account():
     return render_template('account.html', key=key)
 
 
+@app.route('/game', methods=['GET', 'POST'])
+@login_required
+def game():
+    players = Player.query.filter_by(game_id=Player.game_id).all()
+    print(players)
+
+
 if __name__ == '__main__':
-	
+
     app.run(debug=True)
