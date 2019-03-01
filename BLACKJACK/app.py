@@ -53,8 +53,8 @@ login_manager.init_app(app)
 
 @login_manager.user_loader
 def load_user(uid):
-  user = User.query.get(uid)
-  return user
+    user = User.query.get(uid)
+    return user
 
 
 @app.route('/')
