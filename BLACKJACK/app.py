@@ -16,6 +16,9 @@ class User(db.Model, UserMixin):
 
     players = db.relationship('Player', backref='user')
 
+    def get_id(self):
+      return self.user_id
+
 
 class Deck(db.Model):
     card_id = db.Column(db.Integer, primary_key=True)
@@ -46,6 +49,12 @@ class Player(db.Model):
 
 login_manager = LoginManager(app)
 login_manager.init_app(app)
+
+
+@login_manager.user_loader
+def load_user(uid):
+  user = User.query.get(uid)
+  return user
 
 
 @app.route('/')
@@ -99,6 +108,7 @@ def account():
 def game():
     players = Player.query.filter_by(game_id=Player.game_id).all()
     print(players)
+    return render_template('game.html')
 
 
 if __name__ == '__main__':
