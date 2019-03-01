@@ -17,7 +17,7 @@ class User(db.Model, UserMixin):
     players = db.relationship('Player', backref='user')
 
     def get_id(self):
-      return self.user_id
+        return self.user_id
 
 
 class Deck(db.Model):
@@ -53,8 +53,8 @@ login_manager.init_app(app)
 
 @login_manager.user_loader
 def load_user(uid):
-  user = User.query.get(uid)
-  return user
+    user = User.query.get(uid)
+    return user
 
 
 @app.route('/')
