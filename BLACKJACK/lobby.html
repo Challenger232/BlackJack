@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block title %} Lobby {% endblock %}
+{% block content %}
+    <h1>Welcome to the lobby, please join a game</h1>
+
+    <form class="joingame", action="/joingame", method="post">
+        <select name="Game">
+            <option value="game 1">Game {{ g_id }}</option>
+        </select>
+        <input type="submit" value="Submit">
+    </form>
+
+
+{% endblock %}
