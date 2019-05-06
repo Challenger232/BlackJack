@@ -1,15 +1,252 @@
 {% extends "base.html" %}
 {% block title %} Game {% endblock %}
 {% block content %}
+
     <h1>Game Page</h1>
   <table class="PlayerTable">
     <tr>
-      <th>Player Name</th>
+        <th>Current Players</th>
     </tr>
-    
-    {% for name in players %}
+          {% for p in players %}
     <tr>
-      <td>{{ name.user_id }}</td>
+        {% if p.player_id == 0 %}
+            <td><p>Dealer</p></td>
+        {% endif %}
+        {% if p.player_id != 0 %}
+            <td><p>{{ user.username }}</p></td>
+        {% endif %}
+        <td><p id="current_bet_{{ p.player_id }}">Bet: --</p></td>
+        <td><p id="current_cards_{{ p.player_id }}">cards: --</p></td>
+        <td><p id="winnings_{{ p.player_id }}"></p></td>
     </tr>
+          {% endfor %}
   </table>
+    Bet: <input id="money" type="text" name="bet">
+    <button id="bet_button" onclick="bet();">Place Bet</button>
+    <button id="stay_button" onclick="stay();">Stay</button>
+    <button id="hitB" onclick="hit();">Hit</button>
+    <button id="split_button" onclick="split();">Split</button>
+    <button id="double" onclick="doubleDown();">Double Down</button>
+    <button id="testDouble" onclick="testDoubleDown()">Test Double Down</button>
+    <button id="testSplit" onclick="testSplit()">Test Split</button>
+    <body>
+    <div id="swap">Please Place A Bet</div>
+    <script>
+        window.onload = function(){
+            checkState();
+            for(var i = 0; i < {{ players|length }}; i++){
+                returnCards(i);
+            }
+        };
+        document.getElementById("hitB").disabled = true;
+        document.getElementById("stay_button").disabled = true;
+        document.getElementById("split_button").disabled = true;
+        document.getElementById("double").disabled = true;
+        document.getElementById("testDouble").disabled = true;
+        document.getElementById("testSplit").disabled = true;
+        function checkState(){
+            var xhttp = new XMLHttpRequest();
+            xhttp.onreadystatechange = function() {
+                if (this.readyState === 4 && this.status === 200) {
+                    states = JSON.parse(this.responseText);
+                    if (states.dState === 4) {
+                        window.location.href = '/checkWin';
+                    }
+                    else if (states.dState === 3) {
+                        dealerLogic();
+                    }
+                    else if (states.dState !== 3 && states.turn === states.pID && states.pState !== 1) {
+                        document.getElementById("hitB").disabled = false;
+                        document.getElementById("stay_button").disabled = false;
+                        if (states.pair === 1 && states.pBet < (states.pBalance / 2)){
+                            document.getElementById("split_button").disabled = false;
+                        }
+                        if (9 <= states.pScore && states.pScore <= 11 && states.pBet < (states.pBalance / 2)){
+                            document.getElementById("double").disabled = false;
+                        }
+                    }
+                    else if (states.dState === 1) {
+                        var blackjack = deal();
+                        if (blackjack === 'yes'){
+                            window.location.href = '/checkWin';
+                        }
+                        else{
+                            swapText();
+                        }
+                    }
+                    else if (states.pState === 0) {
+                        document.getElementById("testDouble").disabled = false;
+                        document.getElementById("testSplit").disabled = false;
+                    }
+                }
+            };
+            xhttp.open("GET", '/checkState', true);
+            xhttp.send();
+        }
+        var numPlayers = {{ users|length }} + 1;
+        var states = {
+            pair: 0,
+            split: 2,
+            pID: 0,
+            pState: 0,
+            pScore: 0,
+            dState: 0,
+            dScore: 0,
+            turn: 0,
+            pBet: 0,
+            pBalance: 0
+        };
+        var cards = {
+            id: -2,
+            hand: "cards: "
+        };
+        setInterval(checkState, 100);
+        function deal(){
+            var xhttp = new XMLHttpRequest();
+            xhttp.onreadystatechange = function() {
+                if(this.readyState === 4 && this.status === 200){
+                    for(var i = 0; i < states.split; i++){
+                        returnCards(i);
+                    }
+                }
+            };
+            xhttp.open("GET", '/getTwoCards', true);
+            xhttp.send();
+        }
+        function swapText() {
+            var x = document.getElementById("swap");
+            if(x.innerHTML === "Please Place A Bet"){
+                x.innerHTML = " ";
+            }
+        }
+        function hit(){
+            var xhttp = new XMLHttpRequest();
+            xhttp.onreadystatechange = function() {
+                if(this.readyState === 4 && this.status === 200){
+                    for(var i = 0; i < states.split; i++){
+                        returnCards(i);
+                    }
+                }
+            };
+            xhttp.open("GET", '/getCard', true);
+            xhttp.send();
+        }
+        function bet(){
+            var xhttp = new XMLHttpRequest();
+            xhttp.onreadystatechange = function() {
+                if(this.readyState === 4 && this.status === 200){
+                    var txt = this.responseText;
+                    document.getElementById('current_bet_'+states.pID).innerText = "Bet: " + txt;
+                }
+            };
+            var bet = document.getElementById('money').value;
+            if (bet > 0 && bet < {{ user.balance }} && Number.isInteger(bet) === true){
+                document.getElementById("bet_button").disabled = true;
+                xhttp.open("GET", '/bet/'+bet, true);
+                xhttp.send();
+            }
+            else{
+                window.alert("Please place a valid bet:\nMust be a whole number less than your account balance");
+                window.onload = function(){
+                    checkState();
+                    for(var i = 0; i < {{ players|length }}; i++){
+                        returnCards(i);
+                    }
+                };
+            }
+        }
+        function returnCards(i){
+            var xhttp = new XMLHttpRequest();
+            xhttp.onreadystatechange = function() {
+                if(this.readyState === 4 && this.status === 200){
+                    var cards = JSON.parse(this.responseText);
+                    document.getElementById("current_cards_"+cards.id).innerText = cards.hand
+                    document.getElementById("current_bet_"+cards.id).innerText = cards.bet
+                }
+            };
+            xhttp.open("GET", '/returnCards/'+i, true);
+            xhttp.send();
+        }
+        function stay(){
+            var xhttp = new XMLHttpRequest();
+            xhttp.onreadystatechange = function() {
+                if(this.readyState === 4 && this.status === 200){
+                    var txt = this.responseText;
+                }
+            };
+            xhttp.open("GET", '/stay', true);
+            xhttp.send();
+        }
+        function dealerLogic(){
+            document.getElementById("hitB").disabled = true;
+            document.getElementById("stay_button").disabled = true;
+            document.getElementById("split_button").disabled = true;
+            document.getElementById("double").disabled = true;
+            var xhttp = new XMLHttpRequest();
+            xhttp.onreadystatechange = function() {
+                if(this.readyState === 4 && this.status === 200){
+                    var i = 0;
+                    returnCards(i);
+                }
+            };
+            xhttp.open("GET", '/dealerLogic', true);
+            xhttp.send();
+        }
+        function split(){
+            document.getElementById("split_button").disabled = true;
+            var xhttp = new XMLHttpRequest();
+            xhttp.onreadystatechange = function() {
+                if(this.readyState === 4 && this.status === 200){
+                    for (var i = 1; i <= 2; i++) {
+                        returnCards(i);
+                    }
+                    location.reload();
+                }
+            };
+            xhttp.open("GET", '/split', true);
+            xhttp.send();
+        }
+        function doubleDown(){
+            var xhttp = new XMLHttpRequest();
+            xhttp.onreadystatechange = function() {
+                if(this.readyState === 4 && this.status === 200){
+                    var txt = this.responseText;
+                    document.getElementById('current_bet_'+states.pID).innerText = "Bet: " + txt;
+                    hit();
+                    stay();
+                }
+            };
+            document.getElementById("hitB").disabled = true;
+            xhttp.open("GET", '/doubleDown', true);
+            xhttp.send();
+        }
+        function testDoubleDown(){
+            document.getElementById("testDouble").disabled = true;
+            var xhttp = new XMLHttpRequest();
+            xhttp.onreadystatechange = function() {
+                if (this.readyState === 4 && this.status === 200) {
+                    for (var i = 0; i < states.split; i++) {
+                        returnCards(i);
+                    }
+                }
+            };
+            xhttp.open("GET", '/testDD', true);
+            xhttp.send();
+        }
+        function testSplit(){
+            document.getElementById("testSplit").disabled = true;
+            var xhttp = new XMLHttpRequest();
+            xhttp.onreadystatechange = function() {
+                if (this.readyState === 4 && this.status === 200) {
+                    for (var i = 0; i < states.split; i++) {
+                        returnCards(i);
+                    }
+                }
+            };
+            xhttp.open("GET", '/testSplit', true);
+            xhttp.send();
+        }
+    </script>
+    </body>
+
 {% endblock %}

@@ -1,10 +1,152 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>$Title$</title>
-</head>
-<body>
-$END$
-</body>
-</html>
+{#
+
+
+{% extends "base.html" %}
+{% block title %} Game {% endblock %}
+{% block content %}
+
+<script>
+    setInterval(checkState, 1000);
+    var currentPlayerState = 0;
+    var currentDealerState= 0;
+</script>
+    <h1>Game Page</h1>
+  <table class="PlayerTable">
+    <tr>
+        <th>Current Players</th>
+    </tr>
+    <tr>
+        <td>Dealer</td>
+        <td><p id="current_cards">cards: --</p></td>
+    </tr>
+      {% for name in users %}
+    <tr>
+        <td>{{ name.username }}</td>
+        <td><p id="current_bet">0</p></td>
+        <td><p id="current_cards">cards: --</p></td>
+        <td><p id="winnings"></p></td>
+    </tr>
+  {% endfor %}
+  </table>
+
+    <body>
+    Bet: <input id="money" type="text" name="bet">
+    <button id="bet_button" onclick="bet();">Place Bet</button>
+
+    <button id="dealB" onclick="deal();">Deal</button>
+    <button id="hitB" onclick="hit();">Hit</button>
+
+    <p id="hit">Hit: </p>
+    <p id="deal">Deal: </p>
+
+    {% if current_player.player_state != 2 %}
+        <script>
+        document.getElementById("dealB").disabled = true;
+        document.getElementById("hitB").disabled = true;
+        </script>
+    {% endif %}
+    {% if current_player.player_state == 1 %}
+    <script>
+        deal();
+    </script>
+    {% endif %}
+    {% if dealer.player_state == 3 %}
+        {% while dealer.score < 17 %}
+            <script>hit();</script>
+        {% endwhile %}
+            {% if dealer.score > 21 %}
+                {% for player in players %}
+                    {% if player.score < 21 %}
+                        <script>win();</script>
+                    {% endif %}
+                {% endfor %}
+            {% endif %}
+            {% else %}
+                {% for player in players %}
+                    {% if player.score > dealer.score %}
+                        <script>win();</script>
+                    {% endif %}
+                    {% if player.score == dealer.score %}
+                        <script>lose();</script>
+                    {% endif %}
+                    {% else %}
+                        <script>lose();</script>
+                    {% endelse %}
+                {% endfor %}
+            {% endelse %}
+    {% endif %}
+        <script>
+        function deal(){
+            var xhttp = new XMLHttpRequest();
+            xhttp.onreadystatechange = function() {
+                if(this.readyState === 4 && this.status === 200){
+                    var txt = this.responseText;
+                    document.getElementById('current_cards').innerText = "cards: " + txt;
+                    document.getElementById("dealB").disabled = true;
+                }
+            };
+            xhttp.open("GET", '/getTwoCards', true);
+            xhttp.send();
+        }
+        function hit(){
+            var xhttp = new XMLHttpRequest();
+            xhttp.onreadystatechange = function() {
+                if(this.readyState === 4 && this.status === 200){
+                    var txt = this.responseText;
+                    document.getElementById('hit').innerText = txt;
+                }
+            };
+            xhttp.open("GET", '/getCard', true);
+            xhttp.send();
+        }
+        function bet(){
+            var xhttp = new XMLHttpRequest();
+            xhttp.onreadystatechange = function() {
+                if(this.readyState === 4 && this.status === 200){
+                    var txt = this.responseText;
+                    document.getElementById('current_bet').innerText = "Bet: " + txt;
+                }
+            };
+            var bet = document.getElementById('money').value;
+            document.getElementById("bet_button").disabled = true;
+            xhttp.open("GET", '/bet/'+bet, true);
+            xhttp.send();
+        }
+        function win(){
+            var xhttp = new XMLHttpRequest();
+            xhttp.onreadystatechange = function() {
+                if(this.readyState === 4 && this.status === 200){
+                    var txt = this.responseText;
+                    document.getElementById('winnings').innerText = "You've won " + txt;
+                }
+            };
+            xhttp.open("GET", '/win', true);
+            xhttp.send();
+        }
+        function lose(){
+            var xhttp = new XMLHttpRequest();
+            xhttp.onreadystatechange = function() {
+                if(this.readyState === 4 && this.status === 200){
+                    var txt = this.responseText;
+                    document.getElementById('winnings').innerText = "You've lost " + txt;
+                }
+            };
+            xhttp.open("GET", '/lose', true);
+            xhttp.send();
+        }
+        function checkState(){
+            var xhttp = new XMLHttpRequest();
+            xhttp.onreadystatechange = function() {
+                if(this.readyState === 4 && this.status === 200){
+                    var txt = this.responseText;
+                    document.getElementById('currentPlayerState').value = txt;
+                }
+            };
+            xhttp.open("GET", '/checkState', true);
+            xhttp.send();
+        }
+    </script>
+    </body>
+
+{% endblock %}
+#}

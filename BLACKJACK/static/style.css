@@ -1,8 +1,36 @@
 .nav{
     list-style-type: none;
-    display: inline;
     padding: 0;
-    overflow: hidden;
     float: left;
-    background-color: blueviolet;
+    background-image: linear-gradient(darkolivegreen, olivedrab, darkolivegreen);
+    color: black;
+}
+a:visited{
+    color:black;
+}
+a:link{
+    color:black;
+}
+a:hover{
+    color: white;
+    background-color: gray;
+}
+ul {
+    color: black;
+    border: 1px solid black;
+}
+
+li {
+    text-align: center;
+    border-bottom: 1px solid black;
+}
+
+li:last-child {
+    border-bottom: none;
+}
+
+body{
+
+    height: 1000px;
+    background-image: radial-gradient(darkolivegreen, darkgreen);
 }

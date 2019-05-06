@@ -1,5 +1,17 @@
 {% extends "base.html" %}
 {% block title %} Account {% endblock %}
 {% block content %}
-<h1>Account Page</h1>
+    <h1>Account Page</h1>
+    <h2>Welcome {{ key.username }}</h2>
+    {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            {% for message in messages %}
+                <h2>{{ message }}</h2>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+    <h2>Your current balance is {{ key.balance }}</h2>
+
+
+
 {% endblock %}
